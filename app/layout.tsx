@@ -10,6 +10,7 @@ import {
   UserButton,
 } from '@clerk/nextjs'
 import Provider from "./provider";
+import { Toaster } from "sonner";
 
 const AppFont = DM_Sans({ subsets: ['latin'] })
 
@@ -29,6 +30,7 @@ export default function RootLayout({
         <body className={`${AppFont} ${AppFont} antialiased`}>
           <Provider>
             {children}
+            <Toaster position="top-center" richColors/>
           </Provider>
         </body>
       </html>
