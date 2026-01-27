@@ -18,6 +18,7 @@ import { QUICK_VIDEO_SUGGESTIONS } from '@/data/constant'
 import axios from 'axios'
 import { toast } from 'sonner'
 import { SignInButton, useUser } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
 
 
 const Hero = () => {
@@ -25,14 +26,21 @@ const Hero = () => {
     const [type, setType] = useState('full-course')
     const [loading, setLoading] = useState(false)
     const {user} = useUser()
+    const router = useRouter()
 
     const GenerateCourseLayout = async () => {
         const toastId = toast.loading('Generating your course layout...')
         const courseId = await crypto.randomUUID()
+        const trimmedInput = userInput.trim()
+        
+        if (!trimmedInput) {
+            toast.error('Please enter a topic to generate a course!', { id: toastId })
+        }
+
         try {
             setLoading(true)
             const result = await axios.post('/api/generate-course-layout', {
-                userInput,
+                userInput: trimmedInput,
                 type,
                 courseId: courseId
             })
@@ -41,6 +49,8 @@ const Hero = () => {
             toast.success('Course layout generated successfully!', { id: toastId })
 
             // Navigate to course editor page
+            router.push('/course/'+courseId)
+
         } catch (e) {
             setLoading(false)
             toast.error('Something went wrong. Please try again.', { id: toastId })
