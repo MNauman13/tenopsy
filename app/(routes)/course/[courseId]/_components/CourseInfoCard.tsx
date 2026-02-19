@@ -11,8 +11,8 @@ type Props = {
 }
 function CourseInfoCard({ course, durationsBySlideId }: Props) {
 
-    const fps = 30;
-    const slides = course?.chapterContentSlides ?? [];
+    const fps = 30
+    const slides = course?.chapterContentSlides ?? []
 
     const durationInFrames = useMemo(() => {
         if (!durationsBySlideId) return;
