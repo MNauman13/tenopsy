@@ -10,7 +10,7 @@ const Header = () => {
     <div className='flex items-center justify-between p-4'>
         <div className='flex gap-2 items-center'>
             <Image src={'/logo.png'} alt='logo' width={45} height={45} />
-            <h2 className='text-xl font-medium'><span className='text-primary'>Vid</span>Course</h2>
+            <h2 className='text-xl font-medium'><span className='text-primary'>Ten</span>Opsy</h2>
         </div>
         <ul className='flex gap-8 items-center'>
             <li className='text-lg hover:text-primary font-medium cursor-pointer'>Home</li>
