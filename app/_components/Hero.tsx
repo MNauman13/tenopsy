@@ -41,9 +41,9 @@ function Hero() {
             console.log(result.data);
             setLoading(false);
 
-            if (result?.data?.msg == 'max limit') {
-                toast.error('Maximum course created ! Try Monthly Plan', { id: toastId })
-
+            if (result?.data?.msg == 'max limit reached') {
+                toast.error('Maximum courses created ! Try Monthly Plan', { id: toastId })
+                setLoading(false)
                 return;
             }
 

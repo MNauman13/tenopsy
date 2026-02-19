@@ -2,12 +2,25 @@ import { db } from "@/config/db";
 import { client } from "@/config/openai";
 import { coursesTable } from "@/config/schema";
 import { Course_config_prompt } from "@/data/Prompt";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
+import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
     const { userInput, courseId, type } = await req.json()
     const user = await currentUser()
+    const {has} = await auth()
+
+    const isPaidUser = has({ plan: 'monthly' })
+
+    if (!isPaidUser) {
+        const userCourses = await db.select().from(coursesTable)
+            .where(eq(coursesTable.userId, user?.primaryEmailAddress?.emailAddress as string));
+
+        if (userCourses?.length >= 2) {
+            return NextResponse.json({ msg: 'max limit reached' });
+        }
+    }
 
     const response = await client.chat.completions.create({
         model: 'gpt-5-mini',

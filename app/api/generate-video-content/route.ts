@@ -103,11 +103,12 @@ export async function POST(req: NextRequest) {
         }
 
         // 6. Save Everything to Database
+        const dbErrors: string[] = []
         for (let index = 0; index < VideoContentJson.length; index++) {
             const slide = VideoContentJson[index];
 
             try {
-                const result = await db
+                await db
                 .insert(chapterContentSlides)
                 .values({
                     chapterId: chapter.chapterId, // Safely guaranteed to exist now
@@ -124,10 +125,17 @@ export async function POST(req: NextRequest) {
                 .returning();
             } catch (err) {
                 console.error("Database insert error on slide", index, err);
+                dbErrors.push(`slide ${index}`)
             }
         }
 
         // Return Response
+        if (dbErrors.length > 0) {
+            return NextResponse.json(
+                { error: "Partial Failure: some slides were not saved", failed: dbErrors },
+                { status: 207 }
+            )
+        }
         return NextResponse.json({ slides: VideoContentJson, audioFileUrls, captionsArray });
 
     } catch (error: any) {

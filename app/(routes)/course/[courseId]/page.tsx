@@ -24,10 +24,15 @@ function CoursePreview() {
             setCourseDetail(result.data);
             toast.success('Course Details Fetched Successfully!', { id: loadingToast });
             if (result?.data?.chapterContentSlides?.length === 0) {
-                await GenerateVideoContent(result?.data);
-                // Re-fetch to pick up the newly generated slides
-                const updated = await axios.get('/api/course?courseId=' + courseId);
-                setCourseDetail(updated.data);
+                try {
+                    await GenerateVideoContent(result?.data)
+                    // Re-fetch to pick up the newly generated slides
+                    const updated = await axios.get('/api/course?courseId=' + courseId);
+                    setCourseDetail(updated.data);
+                } catch (genErr) {
+                    console.error(genErr)
+                    toast.error("Failed to generate video content. Please try again.")
+                }                
             }
         } catch (err) {
             console.error(err)
