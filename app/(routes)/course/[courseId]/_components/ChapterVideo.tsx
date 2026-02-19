@@ -106,7 +106,7 @@ const SlideIFrameWithReveal = ({ slide }: { slide: Slide }) => {
                 ref={iframeRef}
                 srcDoc={injectRevealRuntime(slide.html)}
                 onLoad={handleLoad}
-                sandbox="allow-scripts allow-same-origin"
+                sandbox="allow-scripts"
                 style={{ width: 1280, height: 720, border: "none" }}
             />
             <Audio src={slide.audioFileUrl} />

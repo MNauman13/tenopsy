@@ -16,7 +16,9 @@ function CourseInfoCard({ course, durationsBySlideId }: Props) {
 
     const durationInFrames = useMemo(() => {
         if (!durationsBySlideId) return;
-        return slides.reduce((sum, slide) => sum + (durationsBySlideId[slide.slideId] ?? fps * 6), 0)
+        const total = slides.reduce((sum, slide) => sum + (durationsBySlideId[slide.slideId] ?? fps * 6), 0);
+        const gaps = Math.max(0, slides.length - 1) * Math.round(1 * fps); // GAP_SECONDS=1
+        return total + gaps;
     }, [durationsBySlideId, slides, fps])
 
 
