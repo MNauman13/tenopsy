@@ -8,6 +8,7 @@ import Replicate from "replicate";
 import { db } from "@/config/db";
 import { chapterContentSlides } from "@/config/schema";
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
+import { currentUser } from "@clerk/nextjs/server";
 
 
 const elevenlabs = new ElevenLabsClient({
@@ -19,102 +20,120 @@ const replicate = new Replicate({
     auth: process.env.REPLICATE_API_KEY || "",
 });
 export async function POST(req: NextRequest) {
-
-    const { chapter, courseId } = await req.json();
-    console.log(chapter, courseId);
-    //Generate JSON Schema for Video Content
-
-    const response = await client.chat.completions.create({
-        model: 'gpt-5.1',
-        messages: [
-            { role: 'system', content: GENERATE_VIDEO_CONTENT_PROMPT },
-            { role: 'user', content: 'Chapter Detail Is' + JSON.stringify(chapter) }
-        ]
-    });
-
-    const AiResult = response.choices[0].message?.content;
-    const VideoContentJson = JSON.parse(AiResult?.replace('```json', '').replace('```', '') || '[]');
-
-    //  Audio File Generation using TTS for Narration
-    // const VideoContentJson = VideoSlidesDummy;
-    let audioFileUrls: string[] = [];
-    for (let i = 0; i < VideoContentJson?.length; i++) {
-        //if (i > 0) break;
-
-        const narration = VideoContentJson[i].narration.fullText;
-
-        // Call ElevenLabs TTS
-        const ttsResponse = await elevenlabs.textToSpeech.convert(
-            "JBFqnCBsd6RMkjVDRZzb",
-            {
-                text: narration,
-                modelId: "eleven_multilingual_v2",
-                outputFormat: "mp3_44100_128"
-            }
-        );
-
-        // Convert Web ReadableStream to Buffer
-        const reader = ttsResponse.getReader();
-        const chunks: Uint8Array[] = [];
-
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            if (value) chunks.push(value);
+    try {
+        // 1. Authentication Check
+        const user = await currentUser();
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const audioBuffer = Buffer.concat(chunks);
+        // 2. Input Parsing and Validation
+        const body = await req.json();
+        const { chapter, courseId } = body;
 
-        // Upload to Azure storage
-        const audioUrl = await SaveAudioToStorage(
-            audioBuffer,
-            VideoContentJson[i].audioFileName
-        );
+        if (!courseId || typeof courseId !== 'string') {
+            return NextResponse.json({ error: "Missing or invalid 'courseId'" }, { status: 400 });
+        }
 
-        audioFileUrls.push(audioUrl);
-        console.log("Uploaded:", audioUrl);
+        if (!chapter || typeof chapter !== 'object') {
+            return NextResponse.json({ error: "Missing or invalid 'chapter' object" }, { status: 400 });
+        }
+
+        if (!chapter.chapterId) {
+            return NextResponse.json({ error: "Missing 'chapter.chapterId' inside chapter object" }, { status: 400 });
+        }
+
+        console.log("Processing chapter:", chapter.chapterId, "for course:", courseId);
+
+        // 3. Generate JSON Schema for Video Content
+        const response = await client.chat.completions.create({
+            model: 'gpt-5.1', // Note: Ensure this model string is correct for your OpenAI plan
+            messages: [
+                { role: 'system', content: GENERATE_VIDEO_CONTENT_PROMPT },
+                { role: 'user', content: 'Chapter Detail Is' + JSON.stringify(chapter) }
+            ]
+        });
+
+        const AiResult = response.choices[0].message?.content;
+        const VideoContentJson = JSON.parse(AiResult?.replace('```json', '').replace('```', '') || '[]');
+
+        // 4. Audio File Generation using TTS for Narration
+        let audioFileUrls: string[] = [];
+        for (let i = 0; i < VideoContentJson?.length; i++) {
+            const narration = VideoContentJson[i].narration.fullText;
+
+            // Call ElevenLabs TTS
+            const ttsResponse = await elevenlabs.textToSpeech.convert(
+                "JBFqnCBsd6RMkjVDRZzb",
+                {
+                    text: narration,
+                    modelId: "eleven_multilingual_v2",
+                    outputFormat: "mp3_44100_128"
+                }
+            );
+
+            // Convert Web ReadableStream to Buffer
+            const reader = ttsResponse.getReader();
+            const chunks: Uint8Array[] = [];
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                if (value) chunks.push(value);
+            }
+
+            const audioBuffer = Buffer.concat(chunks);
+
+            // Upload to Azure storage
+            const audioUrl = await SaveAudioToStorage(
+                audioBuffer,
+                VideoContentJson[i].audioFileName
+            );
+
+            audioFileUrls.push(audioUrl);
+            console.log("Uploaded:", audioUrl);
+        }
+
+        // 5. Generate Captions for the Audio
+        let captionsArray: any[] = [];
+        for (let i = 0; i < audioFileUrls.length; i++) {
+            const captions = await GenerateCaptions(audioFileUrls[i]);
+            console.log(captions);
+            captionsArray.push(captions);
+        }
+
+        // 6. Save Everything to Database
+        for (let index = 0; index < VideoContentJson.length; index++) {
+            const slide = VideoContentJson[index];
+
+            try {
+                const result = await db
+                .insert(chapterContentSlides)
+                .values({
+                    chapterId: chapter.chapterId, // Safely guaranteed to exist now
+                    courseId,                     // Safely guaranteed to exist now
+                    slideIndex: slide.slideIndex,
+                    slideId: slide.slideId,
+                    audioFileName: slide.audioFileName,
+                    narration: slide.narration,
+                    revelData: slide.revelData,
+                    html: slide.html,
+                    audioFileUrl: audioFileUrls[index],
+                    caption: captionsArray[index] ?? {},
+                })
+                .returning();
+            } catch (err) {
+                console.error("Database insert error on slide", index, err);
+            }
+        }
+
+        // Return Response
+        return NextResponse.json({ slides: VideoContentJson, audioFileUrls, captionsArray });
+
+    } catch (error: any) {
+        console.error("API Error in generate-video-content:", error);
+        return NextResponse.json({ error: "Internal Server Error", details: error.message }, { status: 500 });
     }
-
-
-
-    //Generate Captions for the Audio
-
-    let captionsArray: any[] = [];
-    for (let i = 0; i < audioFileUrls.length; i++) {
-        const captions = await GenerateCaptions(audioFileUrls[i]);
-        console.log(captions)
-        captionsArray.push(captions);
-    }
-
-    //Save Everyhting to Database
-    for (let index = 0; index < VideoContentJson.length; index++) {
-        const slide = VideoContentJson[index];
-
-        const result = await db
-            .insert(chapterContentSlides)
-            .values({
-                chapterId: chapter.chapterId,
-                courseId,
-                slideIndex: slide.slideIndex,
-                slideId: slide.slideId,
-                audioFileName: slide.audioFileName,
-                narration: slide.narration,
-                revelData: slide.revelData,
-                html: slide.html,
-                audioFileUrl: audioFileUrls[index],
-                caption: captionsArray[index] ?? {},
-            })
-            .returning();
-
-        console.log(result);
-    }
-
-
-    //Return Response
-
-
-
-    return NextResponse.json({ ...VideoContentJson, audioFileUrls, captionsArray });
 }
 
 const SaveAudioToStorage = async (audioBuffer: Buffer, fileName: string) => {
@@ -122,7 +141,7 @@ const SaveAudioToStorage = async (audioBuffer: Buffer, fileName: string) => {
     const blobService = BlobServiceClient.fromConnectionString(process.env.AZURE_STORAGE_CONNECTION_STRING || "");
     const container = blobService.getContainerClient(process.env.AZURE_STORAGE_CONTAINER_NAME || "");
 
-    const blobName = `tts/${fileName}.mp3`;
+    const blobName = `tts/${fileName}`;
     const blockBlob = container.getBlockBlobClient(blobName);
 
     await blockBlob.uploadData(audioBuffer, {

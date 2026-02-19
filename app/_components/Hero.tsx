@@ -77,7 +77,7 @@ function Hero() {
                         onChange={(e) => setUserInput(e.target.value)}
                     />
                     <InputGroupAddon align="block-end">
-                        <Select defaultValue='full-course'>
+                        <Select defaultValue='full-course' onValueChange={(val) => setType(val)}>
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Select Type" />
                             </SelectTrigger>

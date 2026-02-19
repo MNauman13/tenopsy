@@ -32,7 +32,9 @@ function CourseChapters({ course, durationsBySlideId }: Props) {
                 return sum + safe;
             }, 0);
 
-            return Math.max(1, Math.floor(total)); // ✅ Remotion expects >= 1
+            const GAP_FRAMES = 30 // Must match CourseComposition's GAP_SECONDS * fps
+            const gaps = Math.max(0, chapterSlides.length - 1) * GAP_FRAMES
+            return Math.max(1, Math.floor(total + gaps))
         },
         [course, slides, durationsBySlideId]
     );

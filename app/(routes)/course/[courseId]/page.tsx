@@ -1,5 +1,5 @@
 "use client"
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import CourseInfoCard from './_components/CourseInfoCard'
 import axios from 'axios'
 import { useParams } from 'next/navigation'
@@ -18,12 +18,20 @@ function CoursePreview() {
 
     const GetCourseDetail = async () => {
         const loadingToast = toast.loading('Fetching Course Details...');
-        const result = await axios.get('/api/course?courseId=' + courseId);
-        console.log(result.data);
-        setCourseDetail(result.data);
-        toast.success('Course Details Fetched Successfully!', { id: loadingToast });
-        if (result?.data?.chapterContentSlides?.length === 0) {
-            GenerateVideoContent(result?.data);
+        try {
+            const result = await axios.get('/api/course?courseId=' + courseId);
+            console.log(result.data);
+            setCourseDetail(result.data);
+            toast.success('Course Details Fetched Successfully!', { id: loadingToast });
+            if (result?.data?.chapterContentSlides?.length === 0) {
+                await GenerateVideoContent(result?.data);
+                // Re-fetch to pick up the newly generated slides
+                const updated = await axios.get('/api/course?courseId=' + courseId);
+                setCourseDetail(updated.data);
+            }
+        } catch (err) {
+            console.error(err)
+            toast.error("Failed to fetch course details", { id: loadingToast })
         }
     }
 
@@ -43,7 +51,10 @@ function CoursePreview() {
     }
 
     const fps = 30;
-    const slides = courseDetail?.chapterContentSlides ?? [];
+    const slides = useMemo(
+        () => courseDetail?.chapterContentSlides ?? [],
+        [courseDetail?.chapterContentSlides]
+    )
     const [durationsBySlideId, setDurationsBySlideId] = useState<Record<string, number> | null>(null);
 
 
