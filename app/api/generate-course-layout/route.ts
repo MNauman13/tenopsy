@@ -9,6 +9,17 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
     const { userInput, courseId, type } = await req.json()
     const user = await currentUser()
+
+    if (!user) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // Extract and validate the email address
+    const email = user.primaryEmailAddress?.emailAddress
+    if (!email) {
+        return NextResponse.json({ error: "User email address is missing" }, { status: 400 })
+    }
+
     const {has} = await auth()
 
     const isPaidUser = has({ plan: 'monthly' })
@@ -40,7 +51,7 @@ export async function POST(req: Request) {
         userInput: userInput,
         type: type,
         courseLayout: JSONResult,
-        userId: user?.primaryEmailAddress?.emailAddress || ''
+        userId: email
     }).returning()
 
     return NextResponse.json(courseResult[0])

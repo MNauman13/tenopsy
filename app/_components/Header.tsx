@@ -17,10 +17,12 @@ function Header() {
             </div>
             </Link>
             <ul className='flex gap-8 items-center'>
-                <Link href={'/'}><li className='text-lg hover:text-primary font-medium cursor-pointer'>Home</li></Link>
-                <Link href={'/pricing'}>
-                    <li className='text-lg hover:text-primary font-medium cursor-pointer'>Pricing</li>
-                </Link>
+                <li className='text-lg hover:text-primary font-medium cursor-pointer'>
+                    <Link href={'/'}>Home</Link>
+                </li>
+                <li className='text-lg hover:text-primary font-medium cursor-pointer'>
+                    <Link href={'/pricing'}>Pricing</Link>
+                </li>
             </ul>
 
             {user ?
