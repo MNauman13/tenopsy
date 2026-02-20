@@ -10,7 +10,10 @@ export async function GET(req: NextRequest) {
     const user = await currentUser();
 
     if (!user) {
-        return NextResponse.json(HeroPageCourse);
+        if (courseId) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+        }
+        return NextResponse.json(HeroPageCourse)
     }
 
     if (!courseId) {

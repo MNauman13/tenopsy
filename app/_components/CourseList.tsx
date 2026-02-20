@@ -9,20 +9,24 @@ import { useUser } from '@clerk/nextjs'
 function CourseList() {
 
     const [courseList, setCourseList] = useState<Course[]>([])
-    const { user } = useUser();
+    const { user, isLoaded } = useUser();
     useEffect(() => {
+        if (!isLoaded) return;
         if (!user) {
             //@ts-ignore
             setCourseList(HeroPageCourse);
         } else {
             GetCourseList();
         }
-    }, [user])
+    }, [user, isLoaded])
 
     const GetCourseList = async () => {
-        const result = await axios.get('/api/course');
-        console.log("---", result.data)
-        setCourseList(result.data);
+        try {
+          const result = await axios.get('/api/course')
+          setCourseList(result.data)
+        } catch (error) {
+          console.error('Failed to fetch course list:', error)
+        }
     }
 
     return (
@@ -30,8 +34,8 @@ function CourseList() {
             <h2 className='font-bold text-2xl'>My Courses</h2>
 
             <div className='grid grid-cols-2 md:grid-cols-3 xl:grid-cols-3 gap-5 mt-4'>
-                {courseList && courseList?.map((course, index) => (
-                    <CourseListCard courseItem={course} key={index} />
+                {courseList && courseList?.map((course) => (
+                    <CourseListCard courseItem={course} key={course.courseId} />
                 ))}
             </div>
         </div>
