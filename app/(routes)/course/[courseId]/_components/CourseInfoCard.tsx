@@ -4,7 +4,6 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { Player } from '@remotion/player'
 import { getAudioData } from '@remotion/media-utils'
 import { CourseComposition } from './ChapterVideo'
-import { sl } from 'date-fns/locale'
 type Props = {
     course: Course | undefined,
     durationsBySlideId: Record<string, number> | null

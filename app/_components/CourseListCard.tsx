@@ -1,46 +1,66 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Course } from '@/type/CourseType'
-import { Calendar, Dot, Layers, Play } from 'lucide-react'
+import { BookOpen, Calendar, Play } from 'lucide-react'
 import moment from 'moment'
 import Link from 'next/link'
 import Image from 'next/image'
+
 type Props = {
     courseItem: Course
 }
+
 function CourseListCard({ courseItem }: Props) {
     return (
+        <Card className='bg-white z-10 overflow-hidden group hover:shadow-lg hover:shadow-primary/10 transition-all duration-300 hover:-translate-y-0.5'>
+            {/* Gradient accent bar */}
+            <div className='h-1 w-full bg-gradient-to-r from-primary to-sky-400' />
 
-        <Card className='bg-white z-10'>
-            <CardHeader>
-                {courseItem?.bannerImage && <Image src={courseItem?.bannerImage} width={400}
-                    height={300} alt='banner' className='rounded-2xl aspect-video object-cover' />}
-                <div className='flex justify-between items-center'>
-                    <h2 className='font-medium text-md'>{courseItem?.courseName}</h2>
-                    <h2 className='text-primary text-sm bg-primary/10 p-1 px-2 border rounded-4xl border-primary'>{courseItem?.courseLayout?.level}</h2>
-                </div>
-                <div className='flex gap-3 items-center'>
-                    <h2 className='flex items-center gap-2 text-slate-600 text-xs bg-slate-400/10 p-1 px-2 border rounded-4xl border-slate-500'>
-                        <Layers className='h-4 w-4' />
-                        {courseItem?.courseLayout?.totalChapters} chapters
-                    </h2>
-                    <h2 className='flex items-center  text-slate-600 text-xs bg-slate-400/10 p-1 px-2 border rounded-4xl border-slate-500'>
-                        <Calendar className='h-4 w-4 mr-1' />
-                        {moment(courseItem?.createdAt).format('MMM DD, YYYY')}
-                        <Dot className='h-4 w-4' />
-                        {moment(courseItem?.createdAt).fromNow()}
+            <CardHeader className='pb-3'>
+                {courseItem?.bannerImage ? (
+                    <Image
+                        src={courseItem.bannerImage}
+                        width={400}
+                        height={225}
+                        alt={courseItem.courseName}
+                        className='rounded-lg aspect-video object-cover mb-3'
+                    />
+                ) : (
+                    <div className='rounded-lg aspect-video bg-gradient-to-br from-primary/10 to-sky-400/10 mb-3 flex items-center justify-center'>
+                        <BookOpen className='h-10 w-10 text-primary/40' />
+                    </div>
+                )}
 
+                <div className='flex justify-between items-start gap-2'>
+                    <h2 className='font-semibold text-sm leading-snug line-clamp-2'>
+                        {courseItem?.courseName}
                     </h2>
+                    {courseItem?.courseLayout?.level && (
+                        <span className='shrink-0 text-primary text-xs bg-primary/10 px-2 py-0.5 border rounded-full border-primary/20'>
+                            {courseItem.courseLayout.level}
+                        </span>
+                    )}
                 </div>
             </CardHeader>
 
-            <CardContent>
-                <div className='flex justify-between items-center'>
-                    <p>Keep Learning...</p>
-                    <Link href={'/course/' + courseItem?.courseId}>
-                        <Button>Watch Now <Play /> </Button>
-                    </Link>
+            <CardContent className='pt-0'>
+                <div className='flex items-center gap-3 text-xs text-muted-foreground mb-4'>
+                    <span className='flex items-center gap-1'>
+                        <BookOpen className='h-3.5 w-3.5' />
+                        {courseItem?.courseLayout?.totalChapters ?? 0} chapters
+                    </span>
+                    <span className='flex items-center gap-1'>
+                        <Calendar className='h-3.5 w-3.5' />
+                        {moment(courseItem?.createdAt).fromNow()}
+                    </span>
                 </div>
+
+                <Link href={'/course/' + courseItem?.courseId}>
+                    <Button size='sm' className='w-full rounded-lg transition-colors'>
+                        <Play className='h-3.5 w-3.5 mr-1.5' />
+                        Watch Now
+                    </Button>
+                </Link>
             </CardContent>
         </Card>
     )

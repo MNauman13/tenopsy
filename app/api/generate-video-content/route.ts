@@ -1,7 +1,5 @@
 import { client } from "@/config/openai";
 import { GENERATE_VIDEO_CONTENT_PROMPT } from "@/data/Prompt";
-import axios from "axios";
-import { Languages } from "lucide-react";
 import { NextRequest, NextResponse } from "next/server";
 import { BlobServiceClient } from "@azure/storage-blob";
 import Replicate from "replicate";
@@ -9,6 +7,7 @@ import { db } from "@/config/db";
 import { chapterContentSlides } from "@/config/schema";
 import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { currentUser } from "@clerk/nextjs/server";
+import { getClientIp, rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 
 const elevenlabs = new ElevenLabsClient({
@@ -17,14 +16,28 @@ const elevenlabs = new ElevenLabsClient({
 
 
 const replicate = new Replicate({
-    auth: process.env.REPLICATE_API_KEY || "",
+    auth: process.env.REPLICATE_API_TOKEN || "",
 });
+
+// 15 chapter generations per 15 minutes per user (courses have multiple chapters)
+const LIMIT = 15;
+const WINDOW_MS = 15 * 60 * 1000;
+
 export async function POST(req: NextRequest) {
     try {
         // 1. Authentication Check
         const user = await currentUser();
         if (!user) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        const rateLimitKey = `generate-video:${user.primaryEmailAddress?.emailAddress ?? getClientIp(req)}`;
+        const rl = rateLimit(rateLimitKey, LIMIT, WINDOW_MS);
+        if (!rl.success) {
+            return NextResponse.json(
+                { error: "Too many requests. Please wait before generating more video content." },
+                { status: 429, headers: rateLimitHeaders(rl, LIMIT) }
+            );
         }
 
         // 2. Input Parsing and Validation
