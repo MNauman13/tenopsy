@@ -143,5 +143,5 @@ OUTPUT VALIDATION:
 - No trailing commas
 
 Now generate slides for the provided input.
-\`;
+`;
 
