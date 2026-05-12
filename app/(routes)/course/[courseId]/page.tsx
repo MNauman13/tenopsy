@@ -94,8 +94,8 @@ function CoursePreview() {
 
     return (
         <div className='flex flex-col items-center'>
-            <CourseInfoCard course={courseDetail} durationsBySlideId={durationsBySlideId} />
-            <CourseChapters course={courseDetail} durationsBySlideId={durationsBySlideId} />
+            <CourseInfoCard course={courseDetail} durationsBySlideId={durationsBySlideId} isAuthenticated={!!user} />
+            <CourseChapters course={courseDetail} durationsBySlideId={durationsBySlideId} isAuthenticated={!!user} />
         </div>
     )
 }
