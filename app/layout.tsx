@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import "./globals.css";
-import {
-  ClerkProvider,
-  SignInButton,
-  SignUpButton,
-  SignedIn,
-  SignedOut,
-  UserButton,
-} from '@clerk/nextjs'
+import { ClerkProvider } from '@clerk/nextjs'
 import Provider from "./provider";
 import { Toaster } from "sonner";
 
@@ -27,7 +20,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${AppFont} ${AppFont} antialiased`}>
+        <body className={`${AppFont.className} antialiased`}>
           <Provider>
             {children}
             <Toaster position="top-center" richColors/>

@@ -3,8 +3,13 @@ import { client } from "@/config/openai";
 import { coursesTable } from "@/config/schema";
 import { Course_config_prompt } from "@/data/Prompt";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { getClientIp, rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+
+// 5 course generations per 10 minutes per user
+const LIMIT = 5;
+const WINDOW_MS = 10 * 60 * 1000;
 
 export async function POST(req: Request) {
     const { userInput, courseId, type } = await req.json()
@@ -12,6 +17,15 @@ export async function POST(req: Request) {
 
     if (!user) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    const rateLimitKey = `generate-layout:${user.primaryEmailAddress?.emailAddress ?? getClientIp(req)}`;
+    const rl = rateLimit(rateLimitKey, LIMIT, WINDOW_MS);
+    if (!rl.success) {
+        return NextResponse.json(
+            { error: "Too many requests. Please wait before generating another course." },
+            { status: 429, headers: rateLimitHeaders(rl, LIMIT) }
+        );
     }
 
     // Extract and validate the email address
@@ -42,7 +56,12 @@ export async function POST(req: Request) {
     })
 
     const rawResult = response.choices[0].message?.content || ''
-    const JSONResult = JSON.parse(rawResult)
+    let JSONResult
+    try {
+        JSONResult = JSON.parse(rawResult)
+    } catch {
+        return NextResponse.json({ error: "AI returned invalid JSON. Please try again." }, { status: 500 })
+    }
 
     // Save to DB
     const courseResult = await db.insert(coursesTable).values({

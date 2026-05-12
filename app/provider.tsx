@@ -20,15 +20,13 @@ function Provider({ children }: { children: React.ReactNode }) {
     }
 
     return (
-        <div>
-            <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
-                <div className='max-w-7xl mx-auto'>
-                    <Header />
-                    {children}
-                </div>
-            </UserDetailContext.Provider>
-        </div>
-
+        <UserDetailContext.Provider value={{ userDetail, setUserDetail }}>
+            {/* Header lives outside the max-width container so it can be sticky full-width */}
+            <Header />
+            <div className='max-w-7xl mx-auto'>
+                {children}
+            </div>
+        </UserDetailContext.Provider>
     )
 }
 

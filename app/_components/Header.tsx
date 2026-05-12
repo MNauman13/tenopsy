@@ -1,38 +1,52 @@
 "use client"
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'
+import { Logo } from '@/components/Logo'
 import { SignInButton, UserButton, useUser } from '@clerk/nextjs'
-import Image from 'next/image'
-import Link from 'next/link';
+import Link from 'next/link'
 import React from 'react'
 
 function Header() {
-    const { user } = useUser();
+    const { user } = useUser()
+
     return (
-        <div className='flex items-center justify-between p-4'>
+        <header className='sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur-md'>
+            <div className='max-w-7xl mx-auto flex items-center justify-between px-6 py-3'>
+                <Link href='/'>
+                    <Logo />
+                </Link>
 
-            <Link href={'/'}> <div className='flex gap-2 items-center'>
+                <nav>
+                    <ul className='flex gap-7 items-center'>
+                        <li>
+                            <Link
+                                href='/'
+                                className='text-sm font-medium text-muted-foreground hover:text-foreground transition-colors'
+                            >
+                                Home
+                            </Link>
+                        </li>
+                        <li>
+                            <Link
+                                href='/pricing'
+                                className='text-sm font-medium text-muted-foreground hover:text-foreground transition-colors'
+                            >
+                                Pricing
+                            </Link>
+                        </li>
+                    </ul>
+                </nav>
 
-                <Image src={'/logo.png'} alt='logo' width={45} height={45} />
-                <h2 className='text-xl font-bold'><span className='text-primary'>Vid</span>Course</h2>
+                {user ? (
+                    <UserButton />
+                ) : (
+                    <SignInButton mode='modal'>
+                        <Button size='sm' className='rounded-full px-5'>
+                            Get Started
+                        </Button>
+                    </SignInButton>
+                )}
             </div>
-            </Link>
-            <ul className='flex gap-8 items-center'>
-                <li className='text-lg hover:text-primary font-medium cursor-pointer'>
-                    <Link href={'/'}>Home</Link>
-                </li>
-                <li className='text-lg hover:text-primary font-medium cursor-pointer'>
-                    <Link href={'/pricing'}>Pricing</Link>
-                </li>
-            </ul>
-
-            {user ?
-                <UserButton /> :
-                <SignInButton mode='modal'>
-                    <Button>Get Started</Button>
-                </SignInButton>
-            }
-
-        </div>
+        </header>
     )
 }
 

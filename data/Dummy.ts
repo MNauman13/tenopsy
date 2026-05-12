@@ -55,9 +55,6 @@ export const HeroPageCourse = [
         id: 1,
         courseId: '69975e2a-fc91-4d3d-afa5-43e595655c33',
         courseName: 'React.js Basics: Components, JSX, Props & State',
-        type: 'demo',
-        createdAt: '',
-        chapterContentSlides: [],
         courseLayout: {
             "courseId": "react-basics-components-jsx-props-state",
             "courseName": "React.js Basics: Components, JSX, Props & State",
@@ -69,12 +66,9 @@ export const HeroPageCourse = [
     },
 
     {
-        id: 2,
+        id: 3,
         courseId: '7ce88fbf-ab85-4ca3-b01b-314d8e79b90d',
         courseName: 'Python for Beginners: Variables to Simple Programs',
-        type: 'demo',
-        createdAt: '',
-        chapterContentSlides: [],
         courseLayout: {
             "courseId": "python-beginners-essentials",
             "courseName": "Python for Beginners: Variables to Simple Programs",
@@ -85,12 +79,9 @@ export const HeroPageCourse = [
         bannerImage: '/banner/python.png'
     },
     {
-        id: 3,
+        id: 2,
         courseId: '56e56b13-ee31-4d51-99c2-84d48185e47c',
         courseName: 'How to Build an AI App and Make Money',
-        type: 'demo',
-        createdAt: '',
-        chapterContentSlides: [],
         courseLayout: {
             "courseId": "build-ai-app-monetize",
             "courseName": "How to Build an AI App and Make Money",
