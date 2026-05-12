@@ -9,6 +9,9 @@ import { ElevenLabsClient } from '@elevenlabs/elevenlabs-js';
 import { currentUser } from "@clerk/nextjs/server";
 import { getClientIp, rateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
+// Vercel Pro extended timeout — allows up to 300s for this serverless function
+export const maxDuration = 300;
+
 
 const elevenlabs = new ElevenLabsClient({
     apiKey: process.env.ELEVENLABS_API_KEY
@@ -70,50 +73,41 @@ export async function POST(req: NextRequest) {
         const AiResult = response.choices[0].message?.content;
         const VideoContentJson = JSON.parse(AiResult?.replace('```json', '').replace('```', '') || '[]');
 
-        // 4. Audio File Generation using TTS for Narration
-        let audioFileUrls: string[] = [];
-        for (let i = 0; i < VideoContentJson?.length; i++) {
-            const narration = VideoContentJson[i].narration.fullText;
+        // 4. Audio File Generation using TTS for Narration — all slides in parallel
+        const audioFileUrls: string[] = await Promise.all(
+            VideoContentJson.map(async (slide: any) => {
+                const ttsResponse = await elevenlabs.textToSpeech.convert(
+                    "JBFqnCBsd6RMkjVDRZzb",
+                    {
+                        text: slide.narration.fullText,
+                        modelId: "eleven_multilingual_v2",
+                        outputFormat: "mp3_44100_128"
+                    }
+                );
 
-            // Call ElevenLabs TTS
-            const ttsResponse = await elevenlabs.textToSpeech.convert(
-                "JBFqnCBsd6RMkjVDRZzb",
-                {
-                    text: narration,
-                    modelId: "eleven_multilingual_v2",
-                    outputFormat: "mp3_44100_128"
+                const reader = ttsResponse.getReader();
+                const chunks: Uint8Array[] = [];
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    if (value) chunks.push(value);
                 }
-            );
 
-            // Convert Web ReadableStream to Buffer
-            const reader = ttsResponse.getReader();
-            const chunks: Uint8Array[] = [];
+                const audioBuffer = Buffer.concat(chunks);
+                const audioUrl = await SaveAudioToStorage(audioBuffer, slide.audioFileName);
+                console.log("Uploaded:", audioUrl);
+                return audioUrl;
+            })
+        );
 
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
-                if (value) chunks.push(value);
-            }
-
-            const audioBuffer = Buffer.concat(chunks);
-
-            // Upload to Azure storage
-            const audioUrl = await SaveAudioToStorage(
-                audioBuffer,
-                VideoContentJson[i].audioFileName
-            );
-
-            audioFileUrls.push(audioUrl);
-            console.log("Uploaded:", audioUrl);
-        }
-
-        // 5. Generate Captions for the Audio
-        let captionsArray: any[] = [];
-        for (let i = 0; i < audioFileUrls.length; i++) {
-            const captions = await GenerateCaptions(audioFileUrls[i]);
-            console.log(captions);
-            captionsArray.push(captions);
-        }
+        // 5. Generate Captions for the Audio — all slides in parallel
+        const captionsArray: any[] = await Promise.all(
+            audioFileUrls.map(async (url) => {
+                const captions = await GenerateCaptions(url);
+                console.log(captions);
+                return captions;
+            })
+        );
 
         // 6. Save Everything to Database
         const dbErrors: string[] = []
