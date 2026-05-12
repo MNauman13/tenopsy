@@ -56,25 +56,82 @@ export const HeroPageCourse = [
         courseId: '69975e2a-fc91-4d3d-afa5-43e595655c33',
         courseName: 'React.js Basics: Components, JSX, Props & State',
         courseLayout: {
-            "courseId": "react-basics-components-jsx-props-state",
-            "courseName": "React.js Basics: Components, JSX, Props & State",
-            "courseDescription": "A beginner-friendly introduction to React covering components, JSX, props, and state. Learn key concepts with simple, hands-on examples to build interactive UI pieces.",
-            "level": "Beginner",
-            "totalChapters": 3,
+            courseId: "react-basics-components-jsx-props-state",
+            courseName: "React.js Basics: Components, JSX, Props & State",
+            courseDescription: "A beginner-friendly introduction to React covering components, JSX, props, and state. Learn key concepts with simple, hands-on examples to build interactive UI pieces.",
+            level: "Beginner",
+            totalChapters: 3,
+            chapters: [
+                {
+                    chapterId: "react-ch1",
+                    chapterTitle: "Getting Started with React",
+                    subContent: [
+                        "What React is and why it exists",
+                        "Setting up your first React project with Vite",
+                        "Understanding the component-based mindset",
+                    ]
+                },
+                {
+                    chapterId: "react-ch2",
+                    chapterTitle: "Components, JSX & Props",
+                    subContent: [
+                        "Writing your first functional component",
+                        "What JSX is and how it compiles",
+                        "Passing data between components with props",
+                    ]
+                },
+                {
+                    chapterId: "react-ch3",
+                    chapterTitle: "State & Interactivity",
+                    subContent: [
+                        "Managing changing data with useState",
+                        "Handling user events like clicks and input",
+                        "Conditional rendering based on state values",
+                    ]
+                }
+            ]
         },
         bannerImage: '/banner/react.png'
     },
-
     {
         id: 3,
         courseId: '7ce88fbf-ab85-4ca3-b01b-314d8e79b90d',
         courseName: 'Python for Beginners: Variables to Simple Programs',
         courseLayout: {
-            "courseId": "python-beginners-essentials",
-            "courseName": "Python for Beginners: Variables to Simple Programs",
-            "courseDescription": "A clear, hands-on introduction to Python covering variables, data types, loops, functions, and small programs. Learn fundamental concepts and build simple programs you can run and modify.",
-            "level": "Beginner",
-            "totalChapters": 3,
+            courseId: "python-beginners-essentials",
+            courseName: "Python for Beginners: Variables to Simple Programs",
+            courseDescription: "A clear, hands-on introduction to Python covering variables, data types, loops, functions, and small programs. Learn fundamental concepts and build simple programs you can run and modify.",
+            level: "Beginner",
+            totalChapters: 3,
+            chapters: [
+                {
+                    chapterId: "python-ch1",
+                    chapterTitle: "Introduction & Setup",
+                    subContent: [
+                        "What Python is and where it is used",
+                        "Installing Python and opening the interpreter",
+                        "Writing and running your first program",
+                    ]
+                },
+                {
+                    chapterId: "python-ch2",
+                    chapterTitle: "Variables & Data Types",
+                    subContent: [
+                        "Storing values in variables",
+                        "Numbers, strings, booleans, and None",
+                        "Lists, tuples, and dictionaries at a glance",
+                    ]
+                },
+                {
+                    chapterId: "python-ch3",
+                    chapterTitle: "Control Flow & Functions",
+                    subContent: [
+                        "Making decisions with if / elif / else",
+                        "Repeating actions with for and while loops",
+                        "Writing reusable code with functions",
+                    ]
+                }
+            ]
         },
         bannerImage: '/banner/python.png'
     },
@@ -83,11 +140,40 @@ export const HeroPageCourse = [
         courseId: '56e56b13-ee31-4d51-99c2-84d48185e47c',
         courseName: 'How to Build an AI App and Make Money',
         courseLayout: {
-            "courseId": "build-ai-app-monetize",
-            "courseName": "How to Build an AI App and Make Money",
-            "courseDescription": "A concise beginner course that guides you from idea to revenue. Learn to plan, build, deploy, and monetize an AI-powered app.",
-            "level": "Beginner",
-            "totalChapters": 3,
+            courseId: "build-ai-app-monetize",
+            courseName: "How to Build an AI App and Make Money",
+            courseDescription: "A concise beginner course that guides you from idea to revenue. Learn to plan, build, deploy, and monetize an AI-powered app.",
+            level: "Beginner",
+            totalChapters: 3,
+            chapters: [
+                {
+                    chapterId: "ai-ch1",
+                    chapterTitle: "Planning Your AI App",
+                    subContent: [
+                        "Finding a real problem worth solving with AI",
+                        "Choosing the right AI API for your use case",
+                        "Designing a minimal, shippable first version",
+                    ]
+                },
+                {
+                    chapterId: "ai-ch2",
+                    chapterTitle: "Building & Deploying",
+                    subContent: [
+                        "Integrating an AI API into a web app",
+                        "Handling API keys and environment variables safely",
+                        "Deploying to a live URL with Vercel or Railway",
+                    ]
+                },
+                {
+                    chapterId: "ai-ch3",
+                    chapterTitle: "Growing & Monetizing",
+                    subContent: [
+                        "Getting your first users without a big audience",
+                        "Choosing between subscriptions, one-time, and usage pricing",
+                        "Iterating on feedback to reduce churn",
+                    ]
+                }
+            ]
         },
         bannerImage: '/banner/ai.png'
     }

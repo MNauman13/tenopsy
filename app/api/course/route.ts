@@ -67,6 +67,14 @@ export async function GET(req: NextRequest) {
         .where(eq(coursesTable.courseId, courseId));
 
     if (!courses.length) {
+        // For public demo courses not yet in this DB (e.g. fresh deployment),
+        // fall back to the in-memory dummy data so the page always renders.
+        if (PUBLIC_COURSE_IDS.includes(courseId!)) {
+            const demoCourse = HeroPageCourse.find(c => c.courseId === courseId);
+            if (demoCourse) {
+                return NextResponse.json({ ...demoCourse, chapterContentSlides: [] });
+            }
+        }
         return NextResponse.json({ error: "Course not found" }, { status: 404 });
     }
 

@@ -7,10 +7,12 @@ import { Course } from '@/type/CourseType'
 import CourseChapters from './_components/CourseChapters'
 import { toast } from 'sonner'
 import { getAudioData } from '@remotion/media-utils'
+import { useUser } from '@clerk/nextjs'
 
 function CoursePreview() {
 
     const { courseId } = useParams();
+    const { user } = useUser();
     const [courseDetail, setCourseDetail] = useState<Course>();
     useEffect(() => {
         courseId && GetCourseDetail();
@@ -23,7 +25,8 @@ function CoursePreview() {
             console.log(result.data);
             setCourseDetail(result.data);
             toast.success('Course Details Fetched Successfully!', { id: loadingToast });
-            if (result?.data?.chapterContentSlides?.length === 0) {
+            // Only attempt generation for authenticated users who own the course
+            if (result?.data?.chapterContentSlides?.length === 0 && user) {
                 try {
                     await GenerateVideoContent(result?.data)
                     // Re-fetch to pick up the newly generated slides
@@ -32,7 +35,7 @@ function CoursePreview() {
                 } catch (genErr) {
                     console.error(genErr)
                     toast.error("Failed to generate video content. Please try again.")
-                }                
+                }
             }
         } catch (err) {
             console.error(err)
