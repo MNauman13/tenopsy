@@ -12,11 +12,16 @@ import { useUser } from '@clerk/nextjs'
 function CoursePreview() {
 
     const { courseId } = useParams();
-    const { user } = useUser();
+    const { user, isLoaded } = useUser();
     const [courseDetail, setCourseDetail] = useState<Course>();
+
+    // Wait for Clerk to finish loading before fetching — otherwise `user` is null
+    // even for logged-in users, and the generation check silently skips.
     useEffect(() => {
-        courseId && GetCourseDetail();
-    }, [courseId])
+        if (courseId && isLoaded) {
+            GetCourseDetail();
+        }
+    }, [courseId, isLoaded])
 
     const GetCourseDetail = async () => {
         const loadingToast = toast.loading('Fetching Course Details...');
